@@ -1,8 +1,14 @@
+<!DOCTYPE html>
+<html>
+<title>Computing Storyline Visualizations with Few Block Crossings</title>
+
+<xmp theme="united" style="display:none;">
+
 # Computing Storyline Visualizations with Few Block Crossings
 
 Thomas C. van Dijk, Fabian Lipp, Peter Markfelder and Alexander Wolff
 
-_Lehrstuhl fÃ¼r Informatik I, UniversitÃ¤t WÃ¼rzburg, Germany_
+_Lehrstuhl für Informatik I, Universität Würzburg, Germany_
 
 http://www1.informatik.uni-wuerzburg.de/en/staff
 
@@ -10,7 +16,7 @@ http://www1.informatik.uni-wuerzburg.de/en/staff
 
 All implementations are written in C++, with the exception of some "driver" code in Python for Sat. Comparable effort has been put into optimizing each program. Memory usage was not optimized, but there are no flagrant memory inefficiencies.
 
-- Code is available in the `src` directory. 
+- Code is available [here](code-release.zip). 
 
 - We have compiled the C++11 code with Visual Studio 2017 Community Edition.
 
@@ -21,7 +27,7 @@ All implementations are written in C++, with the exception of some "driver" code
 
 The implementation uses Python to write CNF SAT instances in DIMACS format, to run Minisat on them, and to run the search.
 
-Directory: `src/sat`
+Directory: `/sat`
 
 ### How to set up
 Get a `minisat` executable for your system and put it in `/sat`. See below on how to build Minisat on Windows; in our experience, the Cygwin-based executable available at minisat.se does not work.
@@ -35,8 +41,8 @@ Get the Minisat source code from minisat.se. We have used minisat-2.2.0.tar.gz f
 
 Under Visual Studio 2017 Community Edition, the above code does not compile as-is. Solve the following three problems.
 
-1. Visual Studio does not have zlib by default. Find, build and configure it so that Visual Studio sees it when you compile Minisat. We recommend `vcpkg` as package manager.
-2. Make the following changes to Minisat's `core/Main.cc`, either by hand or by applying our patch `src/minisat4win/Main.cc.patch`.
+1. Visual Studio does not have zlib by default. Find, build and configure it so that Visual Studio sees it when you compile Minisat.
+2. Make the following changes to Minisat's `core/Main.cc`, either by hand or by applying our `/minisat4win/Main.cc.patch`.
    - Change any `"PRIu64"` to `" PRIu64 "`, since Visual Studio chokes otherwise.
    - CPU and memory limitations are implemented in a Linux-specific way and we remove support for this. (These are not used in the experiments.) Remove/comment out the body of the conditional blocks for `mem_lim != INT32_MAX` and `cpu_lim != INT32_MAX`.
    - Remove/comment out any calls to `signal` with signals that Windows does not have, such as `signal(SIGXCPU,SIGINT_exit);`. This does not influence our experiments, because of the previous point.
@@ -51,7 +57,7 @@ size_t getPeakRSS()
         return (size_t)info.PeakWorkingSetSize / (1024*1024);
 }
 ```
-3. Make the following change to minisat's `utils/ParseUtils.h`, either by hand or by applying our patch `/minisat4win/ParseUtils.h.patch`.
+3. Make the following change to minisat's `utils/ParseUtils.h`, either by hand or by applying our `/minisat4win/ParseUtils.h.patch`.
    - Change `static const int buffer_size = 1048576;` to 4096 or some other small number. (Windows, by default, has a smaller stack size and will crash with minisat's default value. Using a smaller read buffer is the simplest fix.)
 
 # Custom exact algorithms: FPT and ItD
@@ -59,7 +65,7 @@ size_t getPeakRSS()
 The implementation is in straight C++11 without libraries.
 See: _Block Crossings in Storyline Visualizations. T. C. van Dijk, M. Fink, N. Fischer, F. Lipp, P. Markfelder, A. Ravsky, S. Suri, A. Wolff. Proceedings of the 24nd Internation Symposium on Graph Drawing. (2016)._
 
-Directory: `src/exact`
+Directory: `/exact`
 
 ### How to set up
 
@@ -71,12 +77,12 @@ There is no commandline interface. As-is, the program runs some experiments on r
 
 - Look at `main` (bottom of the file) and try to read along.
    - Look at `run_FromFile` for an example of how to run the algorithms on a simple file format.
-   - Look at `run_RandomInstances` for an example of how to automatically run measurements on random instances and write the results to a CSV file. This also writes each instance to a PCSV file so you can run the SAT-based program on the same instances.
+   - Look at `run_RandomInstances` for an example of how to automatically run measurements on random instances and write the results to a CSV file. This also writes each instance to a PCSV file so you can run Sat on the same instances.
 - Characters are identified by a 0-indexed integer: `typedef uint8_t CharName;`
-- A meeting is a set of character ids: `typedef set<CharName> Meeting;`. It could be interesting to use bitsets instead.
+- A meeting is a set of character ids: `typedef set<CharName> Meeting;`
 - An instance is a vector of meetings: `typedef vector<Meeting> Meetings;`
-- With `k` characters and the instance as `meetings`, run the FPT algorithm using `dp<Silent>( k, meetings )`. For more debug output, use `dp<Verbose>` instead.
-- Similarly, run ItD using `iterativeDeepening<Silent>( k, meetings )` or `<Verbose>`. (It is probably much slower than `dp`.)
+- With `k` the number of characters and `meetings` the instance, run the FPT algorithm using `dp<Silent>( k, meetings )`. For more debug output, use `dp<Verbose>` instead.
+- Similarly, run ItD using `iterativeDeepening<Silent>( k, meetings )` or `<Verbose>`.
 - Use `random_uniform` and `random_small` to generate random instances.
 - Use `Timer` objects to measure time: `double Timer::elapsed()` gives seconds since the object was constructed.
 
@@ -88,3 +94,8 @@ This program does not read the same input file format as Sat. (This program does
 2. Run FPT and/or ItD on these instances.
 3. Use `writePCSV` to write .pcsv files.
 4. Run Sat on these files.
+
+</xmp>
+
+<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+</html>

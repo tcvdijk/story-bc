@@ -1,0 +1,88 @@
+35a37,50
+> /**
+> * Returns the peak (maximum so far) resident set size (physical
+> * memory use) measured in bytes, or zero if the value cannot be
+> * determined on this OS.
+> */
+> #include <windows.h>
+> #include <psapi.h>
+> size_t memUsedPeak()
+> {
+> 	PROCESS_MEMORY_COUNTERS info;
+> 	GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
+> 	return (size_t)info.PeakWorkingSetSize / (1024*1024);
+> }
+> 
+40,45c55,60
+<     double mem_used = memUsedPeak();
+<     printf("restarts              : %"PRIu64"\n", solver.starts);
+<     printf("conflicts             : %-12"PRIu64"   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
+<     printf("decisions             : %-12"PRIu64"   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
+<     printf("propagations          : %-12"PRIu64"   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
+<     printf("conflict literals     : %-12"PRIu64"   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
+---
+> 	double mem_used = getPeakRSS();
+>     printf("restarts              : %i" PRIu64 "\n", solver.starts);
+>     printf("conflicts             : %-12" PRIu64 "   (%.0f /sec)\n", solver.conflicts   , solver.conflicts   /cpu_time);
+>     printf("decisions             : %-12" PRIu64 "   (%4.2f %% random) (%.0f /sec)\n", solver.decisions, (float)solver.rnd_decisions*100 / (float)solver.decisions, solver.decisions   /cpu_time);
+>     printf("propagations          : %-12" PRIu64 "   (%.0f /sec)\n", solver.propagations, solver.propagations/cpu_time);
+>     printf("conflict literals     : %-12" PRIu64 "   (%4.2f %% deleted)\n", solver.tot_literals, (solver.max_literals - solver.tot_literals)*100 / (double)solver.max_literals);
+99c115
+<         signal(SIGXCPU,SIGINT_exit);
+---
+>         //tvd// signal(SIGXCPU,SIGINT_exit);
+103,109c119,127
+<             rlimit rl;
+<             getrlimit(RLIMIT_CPU, &rl);
+<             if (rl.rlim_max == RLIM_INFINITY || (rlim_t)cpu_lim < rl.rlim_max){
+<                 rl.rlim_cur = cpu_lim;
+<                 if (setrlimit(RLIMIT_CPU, &rl) == -1)
+<                     printf("WARNING! Could not set resource limit: CPU-time.\n");
+<             } }
+---
+> 			printf("tvd didn't set cpu_lim\n");
+>             //rlimit rl;
+>             //getrlimit(RLIMIT_CPU, &rl);
+>             //if (rl.rlim_max == RLIM_INFINITY || (rlim_t)cpu_lim < rl.rlim_max){
+>             //    rl.rlim_cur = cpu_lim;
+>             //    if (setrlimit(RLIMIT_CPU, &rl) == -1)
+>             //        printf("WARNING! Could not set resource limit: CPU-time.\n");
+>             //} 
+> 		}
+113,120c131,140
+<             rlim_t new_mem_lim = (rlim_t)mem_lim * 1024*1024;
+<             rlimit rl;
+<             getrlimit(RLIMIT_AS, &rl);
+<             if (rl.rlim_max == RLIM_INFINITY || new_mem_lim < rl.rlim_max){
+<                 rl.rlim_cur = new_mem_lim;
+<                 if (setrlimit(RLIMIT_AS, &rl) == -1)
+<                     printf("WARNING! Could not set resource limit: Virtual memory.\n");
+<             } }
+---
+> 			printf("tvd didn't set mem_lim\n");
+>             //rlim_t new_mem_lim = (rlim_t)mem_lim * 1024*1024;
+>             //rlimit rl;
+>             //getrlimit(RLIMIT_AS, &rl);
+>             //if (rl.rlim_max == RLIM_INFINITY || new_mem_lim < rl.rlim_max){
+>             //    rl.rlim_cur = new_mem_lim;
+>             //    if (setrlimit(RLIMIT_AS, &rl) == -1)
+>             //        printf("WARNING! Could not set resource limit: Virtual memory.\n");
+>             //}
+> 		}
+125c145,146
+<         gzFile in = (argc == 1) ? gzdopen(0, "rb") : gzopen(argv[1], "rb");
+---
+>         gzFile in = (argc == 1) ? gzdopen(fileno(stdin), "rb") : gzopen(argv[1], "rb");
+> 		//FILE * in = (argc == 1) ? stdin : fopen(argv[1], "rb");
+134c155
+<         gzclose(in);
+---
+>         //tvd// fclose(in);
+149c170
+<         signal(SIGXCPU,SIGINT_interrupt);
+---
+>         //tvd// signal(SIGXCPU,SIGINT_interrupt);
+151a173
+> 			fprintf(res, "%lli\n", getPeakRSS());
+168a191
+> 			fprintf(res, "%lli\n", getPeakRSS());

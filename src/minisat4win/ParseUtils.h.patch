@@ -1,0 +1,4 @@
+34c34
+< static const int buffer_size = 1048576;
+---
+> static const int buffer_size = 4096;
