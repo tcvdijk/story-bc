@@ -57,6 +57,20 @@ struct Change {
 	set<int> in, out;
 };
 
+vector<int> vectorFromLehmer( size_t k, int n ) {
+	int ind, m=k;  
+	vector<int> permuted(n);  
+	vector<int> elems(n);  
+	for(int i=0;i<n;++i) elems[i]=i;  
+	for(int i=0;i<n;++i) {  
+		ind = m % (n-i);  
+		m =  m / (n-i);  
+		permuted[i] = elems[ind];  
+		elems[ind] = elems[n-i-1];  
+	}
+	return permuted;
+}
+
 struct Perm {
 	Node *node;
 	int *pos, *elems, *perm;
@@ -89,7 +103,7 @@ struct Perm {
 
 
 	bool moveAndCheckAgain( Node *w, Node *e, Node *t ) {
-		// might win constant factors by subbing and adding more carefully...
+		// it might be possible to win constant factors by subbing and adding more carefully...
 		Node *q, *r, *y;
 		q = w->prev; // could be null
 		r = e->next;
@@ -152,7 +166,7 @@ struct Perm {
 		// print the represented permutation as a list
 		Node *p = findFirstNode();
 		while( p ) {
-			cout << int(p->id)+1 << " ";
+			cout << int(p->id) << " ";
 			p = p->next;
 		}
 		cout << endl;
@@ -427,9 +441,14 @@ int dp( int k, const Meetings &meetings ) {
 	// ============= DYNAMIC PROGRAMMING
 	if( Verbose ) cout << "Dynamic programming ... ";
 	vector<int> dp(N);
+	vector<size_t> backP(N);
+	vector<int> backL(N);
 	for( int i=0; i<N; ++i ) {
 		// set all dp values to 'unseen'
 		dp[i] = numeric_limits<int>::max();
+		// initialize all back tracing values to something invalid
+		backP[i] = numeric_limits<size_t>::max();
+		backL[i] = -1;
 	}
 	queue<State> Q;
 	for( int p=0; p<kfac; ++p ) {
@@ -446,13 +465,34 @@ int dp( int k, const Meetings &meetings ) {
 			int newL = jump[newP*m + s.l];
 			if( newL == m ) {
 				int sol = dp[s.p*m + s.l];
-				if( Verbose ) cout << "FOUND at distance " << (sol) << endl;	
+				if( Verbose ) cout << "FOUND at distance " << (sol) << endl;
+				cout << "Trace back..." << endl;
+				vector<size_t> trace;
+				trace.push_back(newP);
+				cout << "*** trace L P " << m << " " << newP << endl;
+				size_t traceP = s.p;
+				int traceL = s.l;
+				while( traceL>0 ) {
+					cout << "*** trace L P " << traceL << " " << traceP << endl;
+					trace.push_back(traceP);
+					size_t newP = backP[traceP*m + traceL];
+					int newL = backL[traceP*m + traceL];
+					traceP = newP;
+					traceL = newL;
+				}
+				reverse(trace.begin(),trace.end());
+				for( size_t p : trace ) {
+					Perm(vectorFromLehmer(p,k)).list();
+				}
+				cout << "Trace done." << endl;
 				return sol;
 			}
 			int oldValue = dp[newP*m + newL];
 			int newValue = dp[s.p*m + s.l] + 1;
 			if( newValue < oldValue ) {
 				dp[newP*m + newL] = newValue;
+				backP[newP*m + newL] = s.p;
+				backL[newP*m + newL] = s.l;
 				Q.push( State(newP,newL) );
 			}
 		}
@@ -479,7 +519,7 @@ int run_FromFile( int argc, char *argv[] ) {
 
 	// run
 	Timer timer;
-	int opt = dp<Verbose>( k, meetings );
+	int opt = dp<Silent>( k, meetings );
 	//int opt = iterativeDeepening( k, meetings );
 	cout << "OPT = " << opt << endl;
 	timer.report();
@@ -652,9 +692,27 @@ void addMeeting(Meetings &meetings, int i, int j) {
 	meetings.push_back(m);
 }
 
+void printVec(vector<int> v ) {
+	for( auto i : v ) cout << i << " ";
+	cout << endl;
+}
+
 int main( int argc, char *argv[] ) {
 
-	//return run_FromFile(argc,argv);
-	return run_RandomInstances(argc,argv);
+	// Test permutation codes both ways
+	/*
+	int n = 5;
+	for( int i=0; i<factorial(n); ++i ) {
+		auto vec = vectorFromLehmer( i, n );
+		cout << i << endl;
+		printVec(vec);
+		Perm perm(vec);
+		perm.list();
+		cout << perm.index() << endl << endl;
+	}
+	//*/
+	
+	return run_FromFile(argc,argv);
+	//return run_RandomInstances(argc,argv);
 
 }
